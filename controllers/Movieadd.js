@@ -3,9 +3,9 @@ import Movies from "../models/Movies.js";
 import Theater from "../models/Theater.js"; 
 export const addMovie = async (req, res) => {
   try {
-    const { title, duration, showTiming, rate, director, seatsAvailable } = req.body;
+    const { title, duration, showTiming, rate, director, seatsAvailable,type } = req.body;
 
-    const movie = new Movies({ title, duration, showTiming, rate, director, seatsAvailable });
+    const movie = new Movies({ title, type,duration, showTiming, rate, director, seatsAvailable });
     await movie.save();
 
     res.json(movie);

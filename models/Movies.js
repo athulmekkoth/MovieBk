@@ -6,6 +6,11 @@ const movieSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  type: {
+    type: String,
+    required: true,
+    enum: ['show', 'movie'],
+  },
   duration: {
     type: Number,
     required: true,

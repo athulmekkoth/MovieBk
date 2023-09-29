@@ -12,7 +12,7 @@ export const addTheater = async (req, res) => {
   try {
  
     const { name, location, details } = req.body;
-
+console.log(name,location,details)
     const theater = new Theater({ name, location, details });
     await theater.save();
 

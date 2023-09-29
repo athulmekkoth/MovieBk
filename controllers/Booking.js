@@ -1,6 +1,7 @@
 import Movies from "../models/Movies.js";
 import Booking from "../models/Booking.js"
 import Theater from "../models/Theater.js";
+import { response } from "express";
 
 
 export const Bookings = async (req, res) => {
@@ -24,7 +25,6 @@ export const Bookings = async (req, res) => {
             return;
         }
 
-        // Check if the specified movie is associated with the specified theater
         const isMovieInThisTheater = theater.movies.some(m => m._id.equals(movie._id));
         if (!isMovieInThisTheater) {
             res.status(400).json({ error: 'The specified movie is not associated with the specified theater.' });
@@ -51,17 +51,16 @@ export const Bookings = async (req, res) => {
             phone,
             date,
             slot,
-            seatnumber,
-            movieId: movieid,
-            theaterId: theaterid,
+            bookedSeats:seatnumber,
+            movieid: movieid,
+            theaterid: theaterid,
         });
 
-        // Update the movie's seats with the newly booked seats
+
         const updatedSeats = [...movie.seats, ...seatnumber];
         await Movies.findByIdAndUpdate(movieid, { seats: updatedSeats });
 
-        // Save the booking
-        await newBooking.save();
+       const resposne= await newBooking.save();
 
         res.status(201).json({ message: 'Booking created successfully.' });
       }
@@ -71,16 +70,27 @@ export const Bookings = async (req, res) => {
     }
 };
 
+export const getbooking=async(req,res)=>{
+    try{
+        const response=await Booking.find()
+        res.status(200).json(response)
+    }catch(err)
+    {
+        res.status(500).json({ error: err.message });
+    }
+}
+
 
 
 
 export const updateSeats = async (req, res) => {
     try {
         const { name, email, phone, newdate, newslot, newSeatNumbers, id } = req.body;
-
+       
         if (!Array.isArray(newSeatNumbers)) {
             res.status(400).json({ error: 'New seat numbers should be an array.' });
             return;
+            
         }
 
         const booking = await Booking.findById(id);
@@ -100,31 +110,37 @@ export const updateSeats = async (req, res) => {
             res.status(404).json({ error: 'Movie not found.' });
             return;
         }
+        const items = movie.seats.filter(item => !booking.bookedSeats.includes(item));
 
-        const items = [...movie.seats,...booking.bookedSeats]
 
-        const bookedSeats = await Booking.find({ movieId: booking.movieid, seatNumber: { $in: newSeatNumbers } });
-        if (bookedSeats.length > 0) {
-            res.status(400).json({ error: 'One or more selected seats are already booked.' });
+        if ( newSeatNumbers.length>movie.seatsAvailable.length ) {
+            res.status(400).json({ error: 'seat no unavailable' });
             return;
         }
+        const data = movie.seats.filter(ele => newSeatNumbers.includes(ele));
 
-     
+        if (data.length > 0) {
+            res.status(400).json({ error: 'One or more seats are already booked.' });
+            return;
+        }
+        
+
         booking.name = name;
         booking.email = email;
         booking.phone = phone;
         booking.date = newdate;
         booking.slot = newslot;
-        booking.seatNumber = newSeatNumbers;
+        booking.bookedSeats = newSeatNumbers;
 
         
         await booking.save();
 
        
-        const updatedSeats = [...movie.seats, ...newSeatNumbers];
-        await Theater.findByIdAndUpdate(booking.theaterId, { seats: updatedSeats });
+      
+        const updatedSeats = [...items, ...newSeatNumbers];
+        const updatedmovies=await Movies.findByIdAndUpdate(booking.movieid, { seats: updatedSeats });
 
-        res.status(200).json({ message: 'Seats updated successfully.' });
+        res.status(200).json({ updatedmovies});
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

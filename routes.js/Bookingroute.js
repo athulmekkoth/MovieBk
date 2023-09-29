@@ -1,9 +1,10 @@
 
 import express from 'express';
-import { updateSeats,Bookings } from '../controllers/Booking.js'
+import { updateSeats,Bookings,getbooking } from '../controllers/Booking.js'
 
 const Bookingrouterr = express.Router();
 
-Bookingrouterr.get("/update", updateSeats);
+Bookingrouterr.post("/update", updateSeats);
 Bookingrouterr.post("/book", Bookings);
+Bookingrouterr.get("/bget", getbooking);
 export default Bookingrouterr;
